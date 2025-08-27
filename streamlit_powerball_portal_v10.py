@@ -323,6 +323,23 @@ st.set_page_config(page_title="Powerball Portal v10", layout="wide")
 st.title("Powerball Weighted Picks Portal (v10)")
 
 with st.sidebar:
+    # --- Presets FIRST ---
+    st.subheader("Presets")
+    preset = st.selectbox("Choose preset", list(PRESETS.keys()), index=0, key="preset_k")
+    if st.button("Apply preset"):
+        cfg = PRESETS[st.session_state["preset_k"]]
+        st.session_state["overlap_k"] = int(cfg["overlap_limit"])
+        st.session_state["reroll_k"] = int(cfg["reroll_attempts"])
+        st.session_state["proposals_k"] = int(cfg["proposals_per_attempt"])
+        st.session_state["beam_k"] = int(cfg["beam"])
+        st.session_state["gpool_k"] = int(cfg["guide_pool"])
+        st.session_state["gsw_k"] = float(cfg["gsw"])
+        st.session_state["gsp_k"] = float(cfg["gsp"])
+        st.session_state["pbtop_k"] = int(cfg["pb_top_n"])
+        st.session_state["unique_pb_k"] = bool(cfg["unique_pb"])
+        st.rerun()
+
+    # --- Then the rest of your controls ---
     st.header("Controls")
     st.selectbox("Number of sets", options=[5,6,7,8,9,10], index=0, key="sets_k")
     st.selectbox("Mode", options=["ALL","deterministic","hybrid_det","hybrid","sample","greedy"], index=0, key="mode_k")
@@ -353,27 +370,10 @@ with st.sidebar:
     st.number_input("Guide strength PB (0..1)", min_value=0.0, max_value=1.0, value=0.35, step=0.05, key="gsp_k")
     st.number_input("PB top-N for deterministic", min_value=1, max_value=3, value=2, step=1, key="pbtop_k")
 
-    st.subheader("Presets")
-    preset = st.selectbox("Choose preset", list(PRESETS.keys()), index=0, key="preset_k")
-    if st.button("Apply preset"):
-        cfg = PRESETS[st.session_state["preset_k"]]
-        st.session_state["overlap_k"] = int(cfg["overlap_limit"])
-        st.session_state["reroll_k"] = int(cfg["reroll_attempts"])
-        st.session_state["proposals_k"] = int(cfg["proposals_per_attempt"])
-        st.session_state["beam_k"] = int(cfg["beam"])
-        st.session_state["gpool_k"] = int(cfg["guide_pool"])
-        st.session_state["gsw_k"] = float(cfg["gsw"])
-        st.session_state["gsp_k"] = float(cfg["gsp"])
-        st.session_state["pbtop_k"] = int(cfg["pb_top_n"])
-        st.session_state["unique_pb_k"] = bool(cfg["unique_pb"])
-        try:
-            st.rerun()
-        except Exception:
-            st.experimental_rerun()
-
     st.subheader("Logging")
     st.checkbox("Also save log to disk (.md)", value=False, key="save_log_k")
     st.text_input("Log folder (created if missing)", value="logs", key="logdir_k")
+
 
 st.write("Upload your CSV of drawings (date,pos1,pos2,pos3,pos4,pos5,pb).")
 file = st.file_uploader("CSV file", type=["csv"], accept_multiple_files=False)
